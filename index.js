@@ -6,6 +6,11 @@ const pool = require("./db");
 
 const app = express();
 
+
+// =======================
+// CORS
+// =======================
+
 app.use(cors({
   origin: [
     "http://localhost:3000",
@@ -17,7 +22,10 @@ app.use(cors({
 app.use(express.json());
 
 
-// Routes API
+// =======================
+// ROUTES API
+// =======================
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/eleves', require('./routes/eleves'));
 app.use("/api/enseignants", require("./routes/enseignants"));
@@ -30,46 +38,81 @@ app.use('/api/abonnements', require('./routes/abonnements'));
 app.use('/api/absences', require('./routes/absences'));
 
 
-// Route principale
+// =======================
+// ACCUEIL API
+// =======================
+
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Elimu Africa API En ligne!'
+  res.json({
+    message: "Elimu Africa API En ligne!"
   });
 });
 
 
-// Vérification Render
+// =======================
+// HEALTH CHECK RENDER
+// =======================
+
 app.get('/healthz', (req, res) => {
-  res.status(200).json({ 
-    status: "OK" 
+  res.status(200).json({
+    status: "OK"
   });
 });
 
 
-// Vérifier la connexion à la base et les tables disponibles
+// =======================
+// VERIFICATION POSTGRESQL
+// =======================
+
 app.get('/check-db', async (req, res) => {
+
   try {
-    const result = await pool.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+
+    const connexion = await pool.query(
+      "SELECT current_database(), current_user, inet_server_addr();"
     );
 
+
+    const tables = await pool.query(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name;"
+    );
+
+
     res.json({
+
       database: "connectée",
-      tables: result.rows
+
+      connexion: connexion.rows,
+
+      tables: tables.rows
+
     });
 
+
   } catch (err) {
+
     res.status(500).json({
+
       database: "erreur",
+
       error: err.message
+
     });
+
   }
+
 });
 
 
-// Port Render
+// =======================
+// START SERVER
+// =======================
+
 const PORT = process.env.PORT || 5000;
 
+
 app.listen(PORT, () => {
-  console.log('Serveur demarre sur le port ' + PORT);
+
+  console.log("Serveur demarre sur le port " + PORT);
+
 });
