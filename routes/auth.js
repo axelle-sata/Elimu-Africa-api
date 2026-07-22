@@ -116,6 +116,8 @@ router.post("/register", async (req, res) => {
     classe_enfant
   } = req.body;
 
+  console.log("PASSWORD :", password);
+
 
 
   try {
